@@ -20,6 +20,6 @@ RECEIVER_EMAIL = ["komalsaikiran05@gmail.com"]
 ERROR_HANDLING_GROUP_EMAIL = ["komalsaikiran05@gmail.com"]
 CLEARING_SUCCESS_EMAIL = ["komalsaikiran05@gmail.com"]
 CLEARING_FAILURE_EMAIL = ["komalsaikiran05@gmail.com"]
-PASSWORD = "qlqgqoyzaynbogra"
+PASSWORD = ""
 
 

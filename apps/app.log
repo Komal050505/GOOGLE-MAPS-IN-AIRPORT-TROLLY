@@ -504,3 +504,7 @@ FROM airport_facilities GROUP BY airport_facilities.category
 2024-09-12 01:56:28,888 - INFO -  * Restarting with stat
 2024-09-12 01:56:29,756 - WARNING -  * Debugger is active!
 2024-09-12 01:56:29,759 - INFO -  * Debugger PIN: 118-853-249
+2024-09-12 02:00:38,757 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\email_setup\\email_config.py', reloading
+2024-09-12 02:00:38,850 - INFO -  * Restarting with stat
+2024-09-12 02:00:39,624 - WARNING -  * Debugger is active!
+2024-09-12 02:00:39,627 - INFO -  * Debugger PIN: 118-853-249
