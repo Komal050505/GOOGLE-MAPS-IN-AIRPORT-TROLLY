@@ -1,0 +1,61 @@
+CREATE TABLE airport_facilities (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    coordinates VARCHAR(50) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+INSERT INTO airport_facilities (name, category, coordinates, description)
+VALUES
+('Gate 1', 'Gate', '40.712776,-74.005974', 'Main entrance gate'),
+('Lounges A', 'Lounge', '40.712776,-74.005974', 'Comfortable waiting area with refreshments'),
+('Washroom B', 'Washroom', '40.712776,-74.005974', 'Men''s and Women''s washrooms'),
+('Terminal 3', 'Terminal', '40.712776,-74.005974', 'Departure and arrival terminal'),
+('Shopping Mall', 'Shopping', '40.712776,-74.005974', 'Retail and food outlets'),
+('Airport Clinic', 'Hospital', '40.712776,-74.005974', 'First aid and medical services');
+
+INSERT INTO airport_facilities (name, category, coordinates, description)
+VALUES
+('Gate 2', 'Gate', '40.712776,-74.006000', 'Secondary entrance gate'),
+('Lounges B', 'Lounge', '40.712776,-74.006000', 'Premium lounge with quiet zones'),
+('Washroom A', 'Washroom', '40.712776,-74.006000', 'Accessible washroom near Gate 2'),
+('Terminal 1', 'Terminal', '40.712776,-74.006000', 'International flights terminal'),
+('Duty-Free Shop', 'Shopping', '40.712776,-74.006000', 'Duty-free shopping area'),
+('Food Court', 'Dining', '40.712776,-74.006000', 'Various dining options including fast food'),
+('Medical Center', 'Hospital', '40.712776,-74.006000', 'Comprehensive medical services'),
+('Gate 3', 'Gate', '40.712776,-74.006100', 'Gate near Terminal 1 for domestic flights'),
+('Lounges C', 'Lounge', '40.712776,-74.006100', 'Business lounge with meeting rooms'),
+('Washroom C', 'Washroom', '40.712776,-74.006100', 'Washrooms with baby changing facilities'),
+('Terminal 2', 'Terminal', '40.712776,-74.006100', 'Terminal for domestic flights'),
+('Shopping Arcade', 'Shopping', '40.712776,-74.006100', 'Shopping arcade with various stores'),
+('Bar & Grill', 'Dining', '40.712776,-74.006100', 'Bar and grill restaurant with a wide selection of drinks'),
+('Emergency Clinic', 'Hospital', '40.712776,-74.006100', 'Emergency services and urgent care');
+
+
+ALTER TABLE airport_facilities
+ADD COLUMN created_at_formatted VARCHAR(20);
+
+UPDATE airport_facilities
+SET created_at_formatted = TO_CHAR(created_at AT TIME ZONE 'UTC', 'HH12:MI AM');
+
+
+UPDATE airport_facilities
+SET created_at_formatted = TO_CHAR(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata', 'HH12:MI AM');
+
+SELECT
+    id,
+    name,
+    category,
+    coordinates,
+    description,
+    TO_CHAR(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata', 'HH12:MI AM') AS created_at_formatted
+FROM
+    airport_facilities;
+
+
+
+
+select * from airport_facilities

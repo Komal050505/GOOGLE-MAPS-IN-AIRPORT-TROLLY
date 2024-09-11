@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Airport Navigation</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
+    <script>
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 15,
+                center: { lat: 33.9425, lng: -118.4081 }  // Example center
+            });
+
+            // Function to request the route with waypoints
+            async function getRoute() {
+                const response = await fetch('/route', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        current_location: '33.9425,-118.4081',  // Example user's location
+                        destination: 'Gate 1'  // Example destination
+                    })
+                });
+                const routeData = await response.json();
+                displayRoute(routeData);
+            }
+
+            // Display the route on the map
+            function displayRoute(routeData) {
+                var directionsService = new google.maps.DirectionsService();
+                var directionsRenderer = new google.maps.DirectionsRenderer();
+                directionsRenderer.setMap(map);
+
+                var waypts = routeData.waypoints.map(w => ({
+                    location: new google.maps.LatLng(w.location.lat, w.location.lng),
+                    stopover: true
+                }));
+
+                directionsService.route({
+                    origin: routeData.start_address,
+                    destination: routeData.end_address,
+                    waypoints: waypts,
+                    travelMode: 'DRIVING'
+                }, function (response, status) {
+                    if (status === 'OK') {
+                        directionsRenderer.setDirections(response);
+                    } else {
+                        alert('Directions request failed due to ' + status);
+                    }
+                });
+            }
+
+            // Call the route function
+            getRoute();
+        }
+    </script>
+</head>
+<body onload="initMap()">
+    <h3>Navigate in the Airport</h3>
+    <div id="map" style="height: 500px; width: 100%;"></div>
+</body>
+</html>

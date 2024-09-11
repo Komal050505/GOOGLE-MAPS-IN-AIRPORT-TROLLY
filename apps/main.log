@@ -1,0 +1,127 @@
+2024-09-11 17:18:54,356 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2024-09-11 17:18:54,357 - INFO - [33mPress CTRL+C to quit[0m
+2024-09-11 17:18:54,360 - INFO -  * Restarting with stat
+2024-09-11 17:18:55,393 - WARNING -  * Debugger is active!
+2024-09-11 17:18:55,396 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:20:20,871 - INFO - GET /api/airport/facilities - Start
+2024-09-11 17:20:20,965 - INFO - BEGIN (implicit)
+2024-09-11 17:20:20,969 - INFO - SELECT airport_facilities.id AS airport_facilities_id, airport_facilities.name AS airport_facilities_name, airport_facilities.category AS airport_facilities_category, airport_facilities.coordinates AS airport_facilities_coordinates, airport_facilities.description AS airport_facilities_description, airport_facilities.created_at AS airport_facilities_created_at 
+FROM airport_facilities
+2024-09-11 17:20:20,970 - INFO - [generated in 0.00132s] {}
+2024-09-11 17:20:20,974 - INFO - GET /api/airport/facilities - End: Retrieved all facilities successfully.
+2024-09-11 17:20:20,975 - INFO - 127.0.0.1 - - [11/Sep/2024 17:20:20] "GET /api/airport/facilities HTTP/1.1" 200 -
+2024-09-11 17:22:57,337 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\apps\\app.py', reloading
+2024-09-11 17:22:57,569 - INFO -  * Restarting with stat
+2024-09-11 17:22:59,696 - WARNING -  * Debugger is active!
+2024-09-11 17:22:59,702 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:22:59,751 - INFO - GET /api/airport/facilities - Start
+2024-09-11 17:22:59,813 - INFO - BEGIN (implicit)
+2024-09-11 17:22:59,815 - INFO - SELECT airport_facilities.id AS airport_facilities_id, airport_facilities.name AS airport_facilities_name, airport_facilities.category AS airport_facilities_category, airport_facilities.coordinates AS airport_facilities_coordinates, airport_facilities.description AS airport_facilities_description, airport_facilities.created_at AS airport_facilities_created_at 
+FROM airport_facilities
+2024-09-11 17:22:59,816 - INFO - [generated in 0.00024s] {}
+2024-09-11 17:22:59,819 - INFO - GET /api/airport/facilities - End: Retrieved all facilities successfully.
+2024-09-11 17:23:05,393 - INFO - 127.0.0.1 - - [11/Sep/2024 17:23:05] "GET /api/airport/facilities HTTP/1.1" 200 -
+2024-09-11 17:25:19,986 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\email_setup\\email_operations.py', reloading
+2024-09-11 17:25:20,184 - INFO -  * Restarting with stat
+2024-09-11 17:25:22,089 - WARNING -  * Debugger is active!
+2024-09-11 17:25:22,096 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:26:03,353 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\apps\\app.py', reloading
+2024-09-11 17:26:03,521 - INFO -  * Restarting with stat
+2024-09-11 17:26:04,795 - WARNING -  * Debugger is active!
+2024-09-11 17:26:04,806 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:26:05,337 - INFO - GET /api/airport/facilities - Start
+2024-09-11 17:26:05,420 - INFO - BEGIN (implicit)
+2024-09-11 17:26:05,422 - INFO - SELECT airport_facilities.id AS airport_facilities_id, airport_facilities.name AS airport_facilities_name, airport_facilities.category AS airport_facilities_category, airport_facilities.coordinates AS airport_facilities_coordinates, airport_facilities.description AS airport_facilities_description, airport_facilities.created_at AS airport_facilities_created_at 
+FROM airport_facilities
+2024-09-11 17:26:05,422 - INFO - [generated in 0.00038s] {}
+2024-09-11 17:26:05,428 - INFO - GET /api/airport/facilities - End: Retrieved all facilities successfully.
+2024-09-11 17:26:10,634 - INFO - 127.0.0.1 - - [11/Sep/2024 17:26:10] "GET /api/airport/facilities HTTP/1.1" 200 -
+2024-09-11 17:29:03,191 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\apps\\app.py', reloading
+2024-09-11 17:29:03,345 - INFO -  * Restarting with stat
+2024-09-11 17:29:04,365 - WARNING -  * Debugger is active!
+2024-09-11 17:29:04,368 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:30:14,247 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\apps\\app.py', reloading
+2024-09-11 17:30:14,410 - INFO -  * Restarting with stat
+2024-09-11 17:30:15,711 - WARNING -  * Debugger is active!
+2024-09-11 17:30:15,714 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:30:15,762 - INFO - GET /api/airport/facilities - Start
+2024-09-11 17:30:15,821 - INFO - BEGIN (implicit)
+2024-09-11 17:30:15,823 - INFO - SELECT airport_facilities.id AS airport_facilities_id, airport_facilities.name AS airport_facilities_name, airport_facilities.category AS airport_facilities_category, airport_facilities.coordinates AS airport_facilities_coordinates, airport_facilities.description AS airport_facilities_description, airport_facilities.created_at AS airport_facilities_created_at 
+FROM airport_facilities
+2024-09-11 17:30:15,823 - INFO - [generated in 0.00020s] {}
+2024-09-11 17:30:15,826 - INFO - GET /api/airport/facilities - End: Retrieved all facilities successfully.
+2024-09-11 17:30:20,798 - INFO - 127.0.0.1 - - [11/Sep/2024 17:30:20] "GET /api/airport/facilities HTTP/1.1" 200 -
+2024-09-11 17:34:54,897 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\apps\\app.py', reloading
+2024-09-11 17:34:55,045 - INFO -  * Restarting with stat
+2024-09-11 17:34:56,059 - WARNING -  * Debugger is active!
+2024-09-11 17:34:56,062 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:36:18,782 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\email_setup\\email_operations.py', reloading
+2024-09-11 17:36:18,925 - INFO -  * Restarting with stat
+2024-09-11 17:36:19,862 - WARNING -  * Debugger is active!
+2024-09-11 17:36:19,865 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:37:08,386 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\email_setup\\email_operations.py', reloading
+2024-09-11 17:37:08,545 - INFO -  * Restarting with stat
+2024-09-11 17:37:09,625 - WARNING -  * Debugger is active!
+2024-09-11 17:37:09,629 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:39:39,201 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\email_setup\\email_operations.py', reloading
+2024-09-11 17:39:39,351 - INFO -  * Restarting with stat
+2024-09-11 17:39:40,310 - WARNING -  * Debugger is active!
+2024-09-11 17:39:40,312 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:39:58,063 - INFO - GET /api/airport/facilities - Start
+2024-09-11 17:39:58,173 - INFO - BEGIN (implicit)
+2024-09-11 17:39:58,175 - INFO - SELECT airport_facilities.id AS airport_facilities_id, airport_facilities.name AS airport_facilities_name, airport_facilities.category AS airport_facilities_category, airport_facilities.coordinates AS airport_facilities_coordinates, airport_facilities.description AS airport_facilities_description, airport_facilities.created_at AS airport_facilities_created_at 
+FROM airport_facilities
+2024-09-11 17:39:58,175 - INFO - [generated in 0.00039s] {}
+2024-09-11 17:39:58,179 - INFO - GET /api/airport/facilities - End: Retrieved all facilities successfully.
+2024-09-11 17:40:03,556 - INFO - 127.0.0.1 - - [11/Sep/2024 17:40:03] "GET /api/airport/facilities HTTP/1.1" 200 -
+2024-09-11 17:40:47,338 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\apps\\app.py', reloading
+2024-09-11 17:40:47,492 - INFO -  * Restarting with stat
+2024-09-11 17:40:48,702 - WARNING -  * Debugger is active!
+2024-09-11 17:40:48,706 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:40:48,752 - INFO - GET /api/airport/facilities - Start
+2024-09-11 17:40:48,812 - INFO - BEGIN (implicit)
+2024-09-11 17:40:48,816 - INFO - SELECT airport_facilities.id AS airport_facilities_id, airport_facilities.name AS airport_facilities_name, airport_facilities.category AS airport_facilities_category, airport_facilities.coordinates AS airport_facilities_coordinates, airport_facilities.description AS airport_facilities_description, airport_facilities.created_at AS airport_facilities_created_at 
+FROM airport_facilities
+2024-09-11 17:40:48,816 - INFO - [generated in 0.00037s] {}
+2024-09-11 17:40:48,819 - ERROR - GET /api/airport/facilities - Error: name 'format_facility_details' is not defined
+2024-09-11 17:40:53,926 - INFO - 127.0.0.1 - - [11/Sep/2024 17:40:53] "[35m[1mGET /api/airport/facilities HTTP/1.1[0m" 500 -
+2024-09-11 17:41:10,183 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\apps\\app.py', reloading
+2024-09-11 17:41:10,364 - INFO -  * Restarting with stat
+2024-09-11 17:41:11,677 - WARNING -  * Debugger is active!
+2024-09-11 17:41:11,681 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:41:11,720 - INFO - GET /api/airport/facilities - Start
+2024-09-11 17:41:11,779 - INFO - BEGIN (implicit)
+2024-09-11 17:41:11,782 - INFO - SELECT airport_facilities.id AS airport_facilities_id, airport_facilities.name AS airport_facilities_name, airport_facilities.category AS airport_facilities_category, airport_facilities.coordinates AS airport_facilities_coordinates, airport_facilities.description AS airport_facilities_description, airport_facilities.created_at AS airport_facilities_created_at 
+FROM airport_facilities
+2024-09-11 17:41:11,782 - INFO - [generated in 0.00020s] {}
+2024-09-11 17:41:11,785 - INFO - GET /api/airport/facilities - End: Retrieved all facilities successfully.
+2024-09-11 17:41:11,785 - ERROR - GET /api/airport/facilities - Error: 'int' object is not iterable
+2024-09-11 17:41:16,361 - INFO - 127.0.0.1 - - [11/Sep/2024 17:41:16] "[35m[1mGET /api/airport/facilities HTTP/1.1[0m" 500 -
+2024-09-11 17:43:07,951 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\apps\\app.py', reloading
+2024-09-11 17:43:08,126 - INFO -  * Restarting with stat
+2024-09-11 17:43:09,422 - WARNING -  * Debugger is active!
+2024-09-11 17:43:09,425 - INFO -  * Debugger PIN: 118-853-249
+2024-09-11 17:43:09,466 - INFO - GET /api/airport/facilities - Start
+2024-09-11 17:43:09,522 - INFO - BEGIN (implicit)
+2024-09-11 17:43:09,523 - INFO - SELECT airport_facilities.id AS airport_facilities_id, airport_facilities.name AS airport_facilities_name, airport_facilities.category AS airport_facilities_category, airport_facilities.coordinates AS airport_facilities_coordinates, airport_facilities.description AS airport_facilities_description, airport_facilities.created_at AS airport_facilities_created_at 
+FROM airport_facilities
+2024-09-11 17:43:09,523 - INFO - [generated in 0.00017s] {}
+2024-09-11 17:43:09,526 - INFO - GET /api/airport/facilities - End: Retrieved all facilities successfully.
+2024-09-11 17:43:14,223 - INFO - 127.0.0.1 - - [11/Sep/2024 17:43:14] "GET /api/airport/facilities HTTP/1.1" 200 -
+2024-09-11 17:45:29,879 - INFO -  * Detected change in 'C:\\Users\\lenovo\\PycharmProjects\\google_maps_in_airport_trolly\\logging_package\\logging_utility.py', reloading
+2024-09-11 17:45:30,024 - INFO -  * Restarting with stat
+2024-09-11 17:47:32,269 - INFO -  * Restarting with stat
+2024-09-11 17:48:17,070 - INFO -  * Restarting with stat
+2024-09-11 17:49:42,738 - INFO -  * Restarting with stat
+2024-09-11 17:51:08,091 - INFO -  * Restarting with stat
+2024-09-11 17:52:15,189 - INFO -  * Restarting with stat
+2024-09-11 17:52:45,316 - INFO -  * Restarting with stat
+2024-09-11 17:56:08,885 - INFO -  * Restarting with stat
+2024-09-11 17:57:26,066 - INFO -  * Restarting with stat
+2024-09-11 17:59:11,032 - INFO -  * Restarting with stat
+2024-09-11 18:00:48,925 - INFO -  * Restarting with stat
+2024-09-11 18:11:36,775 - INFO -  * Restarting with stat
+2024-09-11 18:12:06,028 - INFO -  * Restarting with stat
+2024-09-11 18:17:09,736 - INFO -  * Restarting with stat
+2024-09-11 18:18:22,506 - INFO -  * Restarting with stat
