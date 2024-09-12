@@ -1,10 +1,9 @@
-
 from flask import Flask, jsonify, request
 from sqlalchemy import func
 import googlemaps
 from db_connections.configurations import session, DATABASE_URL
 from email_setup.email_operations import notify_clear_failure, notify_clear_success, notify_failure, notify_success, \
-    format_steps
+    format_steps, format_facility_details
 from logging_package.logging_utility import log_error, log_info, log_warning
 from user_models.tables import AirportFacility
 
@@ -93,6 +92,235 @@ def navigate():
         return jsonify({"error": error_message}), 500
 
 
+@app.route('/nearby_facilities', methods=['GET'])
+def nearby_facilities():
+    """
+    API to find nearby facilities from the current location within a specified radius.
+    Query Parameters:
+        current_lat (float): Current latitude of the location.
+        current_lng (float): Current longitude of the location.
+        radius (int): Search radius in meters.
+    Returns:
+        JSON response with a list of nearby facilities.
+    """
+    log_info("Starting /nearby_facilities API call")
+
+    current_lat = request.args.get('current_lat')
+    current_lng = request.args.get('current_lng')
+    radius = request.args.get('radius', default=1000, type=int)
+
+    if not current_lat or not current_lng:
+        error_message = "Missing required parameters: current_lat and current_lng"
+        log_error(error_message)
+        notify_failure("Nearby Facilities API Error", error_message)
+        return jsonify({"error": error_message}), 400
+
+    try:
+        places_result = gmaps.places_nearby(
+            location=(float(current_lat), float(current_lng)),
+            radius=radius
+        )
+
+        if places_result and 'results' in places_result:
+            facilities = [
+                {
+                    "id": place.get('place_id', 'N/A'),
+                    "name": place.get('name', 'N/A'),
+                    "category": place.get('types', ['N/A'])[0],
+                    "coordinates": f"{place.get('geometry', {}).get('location', {}).get('lat', 'N/A')}, "
+                                   f"{place.get('geometry', {}).get('location', {}).get('lng', 'N/A')}",
+                    "description": place.get('vicinity', 'N/A'),
+                    "created_at": "N/A"
+                } for place in places_result['results']
+            ]
+
+            success_message = "Nearby facilities fetched successfully"
+            log_info(success_message)
+            formatted_facilities = format_facility_details(facilities)
+
+            notify_success(
+                "Nearby Facilities API Success",
+                f"{success_message}<br><br>Facilities:<br>{formatted_facilities}"
+            )
+            return jsonify({"facilities": facilities}), 200
+
+        error_message = "No nearby facilities found"
+        log_error(error_message)
+        notify_failure("Nearby Facilities API Error", error_message)
+        return jsonify({"error": error_message}), 404
+
+    except Exception as e:
+        error_message = f"An error occurred: {str(e)}"
+        log_error(error_message)
+        notify_failure("Nearby Facilities API Error", error_message)
+        return jsonify({"error": error_message}), 500
+
+    finally:
+        log_info("Ending /nearby_facilities API call")
+
+
+@app.route('/geocode', methods=['GET'])
+def geocode():
+    """
+    API to get latitude and longitude coordinates for a given address.
+    Query Parameters:
+        address (str): The address to be geocoded.
+    Returns:
+        JSON response with latitude and longitude coordinates.
+    """
+    log_info("Starting /geocode API call")
+
+    address = request.args.get('address')
+
+    if not address:
+        error_message = "Missing required parameter: address"
+        log_error(error_message)
+        notify_failure("Geocode API Error", error_message)
+        return jsonify({"error": error_message}), 400
+
+    try:
+        geocode_result = gmaps.geocode(address)
+
+        if geocode_result and 'results' in geocode_result and geocode_result['results']:
+            location = geocode_result['results'][0]['geometry']['location']
+            success_message = "Geocoding successful"
+            log_info(success_message)
+            # Notify success with detailed info
+            notify_success(
+                "Geocode API Success",
+                f"{success_message}<br><br>Address: {address}<br>"
+                f"Latitude: {location['lat']}<br>Longitude: {location['lng']}"
+            )
+            return jsonify({
+                "latitude": location['lat'],
+                "longitude": location['lng']
+            }), 200
+
+        error_message = "Geocoding failed for the provided address"
+        log_error(error_message)
+        notify_failure("Geocode API Error", error_message)
+        return jsonify({"error": error_message}), 404
+
+    except Exception as e:
+        error_message = f"An error occurred: {str(e)}"
+        log_error(error_message)
+        notify_failure("Geocode API Error", error_message)
+        return jsonify({"error": error_message}), 500
+
+    finally:
+        log_info("Ending /geocode API call")
+
+
+@app.route('/reverse_geocode', methods=['GET'])
+def reverse_geocode():
+    """
+    API to get a human-readable address for given latitude and longitude coordinates.
+    Query Parameters:
+        latitude (float): Latitude of the location.
+        longitude (float): Longitude of the location.
+    Returns:
+        JSON response with the address.
+    """
+    log_info("Starting /reverse_geocode API call")
+
+    latitude = request.args.get('latitude')
+    longitude = request.args.get('longitude')
+
+    if not latitude or not longitude:
+        error_message = "Missing required parameters: latitude and longitude"
+        log_error(error_message)
+        notify_failure("Reverse Geocode API Error", error_message)
+        return jsonify({"error": error_message}), 400
+
+    try:
+        reverse_geocode_result = gmaps.reverse_geocode((float(latitude), float(longitude)))
+
+        if reverse_geocode_result and 'results' in reverse_geocode_result and reverse_geocode_result['results']:
+            address = reverse_geocode_result['results'][0]['formatted_address']
+            success_message = "Reverse geocoding successful"
+            log_info(success_message)
+
+            notify_success(
+                "Reverse Geocode API Success",
+                f"{success_message}<br><br>Coordinates: Latitude: {latitude}, Longitude: {longitude}<br>"
+                f"Address: {address}"
+            )
+            return jsonify({"address": address}), 200
+
+        error_message = "Reverse geocoding failed for the provided coordinates"
+        log_error(error_message)
+        notify_failure("Reverse Geocode API Error", error_message)
+        return jsonify({"error": error_message}), 404
+
+    except Exception as e:
+        error_message = f"An error occurred: {str(e)}"
+        log_error(error_message)
+        notify_failure("Reverse Geocode API Error", error_message)
+        return jsonify({"error": error_message}), 500
+
+    finally:
+        log_info("Ending /reverse_geocode API call")
+
+
+@app.route('/distance', methods=['GET'])
+def distance():
+    """
+    API to calculate the distance between two points given their latitude and longitude coordinates.
+    Query Parameters:
+        lat1 (float): Latitude of the first location.
+        lng1 (float): Longitude of the first location.
+        lat2 (float): Latitude of the second location.
+        lng2 (float): Longitude of the second location.
+    Returns:
+        JSON response with the distance between the two points.
+    """
+    log_info("Starting /distance API call")
+
+    lat1 = request.args.get('lat1')
+    lng1 = request.args.get('lng1')
+    lat2 = request.args.get('lat2')
+    lng2 = request.args.get('lng2')
+
+    if not lat1 or not lng1 or not lat2 or not lng2:
+        error_message = "Missing required parameters: lat1, lng1, lat2, and/or lng2"
+        log_error(error_message)
+        notify_failure("Distance API Error", error_message)
+        return jsonify({"error": error_message}), 400
+
+    try:
+        distance_result = gmaps.distance_matrix(
+            origins=[(float(lat1), float(lng1))],
+            destinations=[(float(lat2), float(lng2))]
+        )
+
+        if distance_result and 'rows' in distance_result and distance_result['rows']:
+            distances = distance_result['rows'][0]['elements'][0]['distance']['text']
+            success_message = "Distance calculation successful"
+            log_info(success_message)
+
+            notify_success(
+                "Distance API Success",
+                f"{success_message}<br><br>Coordinates:<br>Start: Latitude: {lat1}, Longitude: {lng1}<br>"
+                f"End: Latitude: {lat2}, Longitude: {lng2}<br>Distance: {distances}"
+            )
+            return jsonify({"distance": distances}), 200
+
+        error_message = "Failed to calculate distance"
+        log_error(error_message)
+        notify_failure("Distance API Error", error_message)
+        return jsonify({"error": error_message}), 404
+
+    except Exception as e:
+        error_message = f"An error occurred: {str(e)}"
+        log_error(error_message)
+        notify_failure("Distance API Error", error_message)
+        return jsonify({"error": error_message}), 500
+
+    finally:
+        log_info("Ending /distance API call")
+
+
+# ......................................................................................................................
 @app.route('/airport/facilities/search', methods=['GET'])
 def search_facilities():
     """
