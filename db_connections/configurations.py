@@ -9,7 +9,8 @@ from sqlalchemy.orm import sessionmaker
 
 # Database configuration
 DATABASE_URL = "postgresql://postgres:1995@localhost:5432/postgres"
-
+YOUR_GOOGLE_MAPS_API_KEY = ("key should provide by acivating Google Cloud Console in that choose  Google Maps Platform "
+                            "page.")
 
 # SQLAlchemy setup
 Base = declarative_base()

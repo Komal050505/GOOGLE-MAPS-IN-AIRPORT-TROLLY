@@ -1,13 +1,96 @@
+
 from flask import Flask, jsonify, request
 from sqlalchemy import func
-
+import googlemaps
 from db_connections.configurations import session, DATABASE_URL
-from email_setup.email_operations import notify_clear_failure, notify_clear_success, notify_failure, notify_success
+from email_setup.email_operations import notify_clear_failure, notify_clear_success, notify_failure, notify_success, \
+    format_steps
 from logging_package.logging_utility import log_error, log_info, log_warning
 from user_models.tables import AirportFacility
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+
+gmaps = googlemaps.Client(key="YOUR_GOOGLE_MAPS_API_KEY")
+
+
+@app.route('/navigate', methods=['GET'])
+def navigate():
+    """
+    API to get navigation directions from the current location to a facility in the airport.
+    Query Parameters:
+        current_lat (float): Current latitude of the trolley.
+        current_lng (float): Current longitude of the trolley.
+        facility_id (int): ID of the facility to navigate to.
+    Returns:
+        JSON response with navigation steps and distance.
+    """
+    current_lat = request.args.get('current_lat')
+    current_lng = request.args.get('current_lng')
+    facility_id = request.args.get('facility_id')
+
+    if not current_lat or not current_lng or not facility_id:
+        error_message = "Missing required parameters: current_lat, current_lng, and/or facility_id"
+        log_error(error_message)
+        notify_failure("Navigation API Error", error_message)
+        return jsonify({"error": error_message}), 400
+
+    try:
+        facility = session.query(AirportFacility).get(facility_id)
+        if not facility:
+            error_message = f"Facility with ID {facility_id} not found"
+            log_error(error_message)
+            notify_failure("Navigation API Error", error_message)
+            return jsonify({"error": error_message}), 404
+
+        destination_coords = facility.coordinates.split(',')
+        if len(destination_coords) != 2:
+            error_message = "Invalid coordinates format in the facility record"
+            log_error(error_message)
+            notify_failure("Navigation API Error", error_message)
+            return jsonify({"error": error_message}), 400
+
+        # Usees Google Maps API to get directions from current location to the facility
+        directions_result = gmaps.directions(
+            origin=(float(current_lat), float(current_lng)),
+            destination=(float(destination_coords[0]), float(destination_coords[1])),
+            mode="walking"
+        )
+
+        steps = []
+        if directions_result and 'legs' in directions_result[0]:
+            for step in directions_result[0]['legs'][0]['steps']:
+                steps.append({
+                    "distance": step['distance']['text'],
+                    "duration": step['duration']['text'],
+                    "instruction": step['html_instructions'],
+                    "start_location": step['start_location'],
+                    "end_location": step['end_location']
+                })
+
+            success_message = "Navigation directions fetched successfully"
+            log_info(success_message)
+            notify_success(
+                "Navigation API Success",
+                f"{success_message}<br><br>Facility: {facility.to_dict()}<br><br>Steps: {format_steps(steps)}"
+            )
+            return jsonify({
+                "facility": facility.to_dict(),
+                "navigation_steps": steps,
+                "total_distance": directions_result[0]['legs'][0]['distance']['text'],
+                "total_duration": directions_result[0]['legs'][0]['duration']['text']
+            }), 200
+
+        error_message = "No directions found"
+        log_error(error_message)
+        notify_failure("Navigation API Error", error_message)
+        return jsonify({"error": error_message}), 404
+
+    except Exception as e:
+        error_message = f"An error occurred: {str(e)}"
+        log_error(error_message)
+        notify_failure("Navigation API Error", error_message)
+        return jsonify({"error": error_message}), 500
 
 
 @app.route('/airport/facilities/search', methods=['GET'])

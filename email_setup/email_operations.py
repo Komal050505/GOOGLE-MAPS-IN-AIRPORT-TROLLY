@@ -133,3 +133,24 @@ def format_facility_details(facilities):
 
     html += "</table>"
     return html
+
+
+def format_steps(steps):
+    """
+    Formats navigation steps into an HTML string.
+
+    :param steps: List of navigation steps.
+    :return: HTML formatted string of navigation steps.
+    """
+    if not steps:
+        return "<p>No steps found.</p>"
+
+    html = ("<h3>Navigation Steps</h3><table border='1'><tr><th>Distance</th><th>Duration</th><th>Instruction</th><th"
+            ">Start Location</th><th>End Location</th></tr>")
+    for step in steps:
+        html += (f"<tr><td>{step['distance']}</td><td>{step['duration']}</td>"
+                 f"<td>{step['instruction']}</td><td>{step['start_location']}</td>"
+                 f"<td>{step['end_location']}</td></tr>")
+
+    html += "</table>"
+    return html
