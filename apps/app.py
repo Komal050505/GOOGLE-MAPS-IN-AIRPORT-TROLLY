@@ -1,16 +1,82 @@
+# Flask Imports
 from flask import Flask, jsonify, request
+
+# SQLAlchemy Imports
 from sqlalchemy import func
+
+# Third-Party Library Imports
 import googlemaps
-from db_connections.configurations import session, DATABASE_URL
-from email_setup.email_operations import notify_clear_failure, notify_clear_success, notify_failure, notify_success, \
-    format_steps, format_facility_details
-from logging_package.logging_utility import log_error, log_info, log_warning
+from sqlalchemy.exc import SQLAlchemyError
+
+# Project-Specific Imports
+from db_connections.configurations import session, DATABASE_URL, YOUR_GOOGLE_MAPS_API_KEY
+from email_setup.email_config import ERROR_HANDLING_GROUP_EMAIL, RECEIVER_EMAIL
+from email_setup.email_operations import (notify_clear_failure, notify_clear_success, notify_failure,
+                                          notify_success, format_steps,
+                                          format_facility_details_with_distance_for_email,
+                                          format_geocode_error_response, send_email, prepare_geocode_success_message,
+                                          format_reverse_geocode_error_response,
+                                          prepare_reverse_geocode_success_message)
+from logging_package.logging_utility import log_error, log_info, log_warning, log_debug
 from user_models.tables import AirportFacility
+from utilities.reusables import calculate_distance
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 
-gmaps = googlemaps.Client(key="YOUR_GOOGLE_MAPS_API_KEY")
+gmaps = googlemaps.Client(key=YOUR_GOOGLE_MAPS_API_KEY)
+
+
+@app.route('/route', methods=['POST'])
+def get_route():
+    try:
+        # Get data from request
+        data = request.get_json()
+        current_location = data.get('current_location')
+        destination = data.get('destination')
+
+        if not current_location or not destination:
+            log_error("Missing required parameters: current_location and/or destination")
+            notify_failure("Route Request Failed", "Missing required parameters: current_location and/or destination")
+            return jsonify({"error": "Missing required parameters: current_location and/or destination"}), 400
+
+        # Convert current location to tuple
+        origin = (current_location['lat'], current_location['lng'])
+
+        # Get directions from Google Maps API
+        directions_result = gmaps.directions(
+            origin=origin,
+            destination=destination,
+            mode="walking"  # Change to "driving" or other modes if needed
+        )
+
+        if not directions_result:
+            log_error("No directions found")
+            notify_failure("Route Request Failed", "No directions found")
+            return jsonify({"error": "No directions found"}), 404
+
+        # Extract route details
+        route_data = {
+            "start_address": directions_result[0]['legs'][0]['start_address'],
+            "end_address": directions_result[0]['legs'][0]['end_address'],
+            "waypoints": [
+                {
+                    "lat": step['end_location']['lat'],
+                    "lng": step['end_location']['lng']
+                }
+                for step in directions_result[0]['legs'][0]['steps']
+            ]
+        }
+
+        log_info(f"Route successfully fetched: {route_data}")
+        notify_success("Route Request Successful", "The route was successfully fetched.",
+                       count=len(route_data['waypoints']))
+        return jsonify(route_data), 200
+
+    except Exception as e:
+        log_error(f"Exception occurred: {str(e)}")
+        notify_failure("Route Request Failed", f"Exception occurred: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/navigate', methods=['GET'])
@@ -24,6 +90,7 @@ def navigate():
     Returns:
         JSON response with navigation steps and distance.
     """
+    # Here current lat and current lng is given to trolly and facility id is the destination
     current_lat = request.args.get('current_lat')
     current_lng = request.args.get('current_lng')
     facility_id = request.args.get('facility_id')
@@ -35,7 +102,7 @@ def navigate():
         return jsonify({"error": error_message}), 400
 
     try:
-        facility = session.query(AirportFacility).get(facility_id)
+        facility = session.get(AirportFacility, facility_id)
         if not facility:
             error_message = f"Facility with ID {facility_id} not found"
             log_error(error_message)
@@ -92,7 +159,7 @@ def navigate():
         return jsonify({"error": error_message}), 500
 
 
-@app.route('/nearby_facilities', methods=['GET'])
+@app.route('/nearby-facilities', methods=['GET'])
 def nearby_facilities():
     """
     API to find nearby facilities from the current location within a specified radius.
@@ -122,21 +189,28 @@ def nearby_facilities():
         )
 
         if places_result and 'results' in places_result:
-            facilities = [
-                {
+            facilities = []
+            for place in places_result['results']:
+                place_lat = place.get('geometry', {}).get('location', {}).get('lat', 'N/A')
+                place_lng = place.get('geometry', {}).get('location', {}).get('lng', 'N/A')
+
+                distance = calculate_distance(float(current_lat), float(current_lng), float(place_lat),
+                                              float(place_lng))
+
+                facility = {
                     "id": place.get('place_id', 'N/A'),
                     "name": place.get('name', 'N/A'),
                     "category": place.get('types', ['N/A'])[0],
-                    "coordinates": f"{place.get('geometry', {}).get('location', {}).get('lat', 'N/A')}, "
-                                   f"{place.get('geometry', {}).get('location', {}).get('lng', 'N/A')}",
+                    "coordinates": f"{place_lat}, {place_lng}",
                     "description": place.get('vicinity', 'N/A'),
+                    "distance": f"{distance:.2f} km",
                     "created_at": "N/A"
-                } for place in places_result['results']
-            ]
+                }
+                facilities.append(facility)
 
             success_message = "Nearby facilities fetched successfully"
             log_info(success_message)
-            formatted_facilities = format_facility_details(facilities)
+            formatted_facilities = format_facility_details_with_distance_for_email(facilities)
 
             notify_success(
                 "Nearby Facilities API Success",
@@ -166,7 +240,7 @@ def geocode():
     Query Parameters:
         address (str): The address to be geocoded.
     Returns:
-        JSON response with latitude and longitude coordinates.
+        JSON response with latitude and longitude coordinates or error details.
     """
     log_info("Starting /geocode API call")
 
@@ -175,43 +249,62 @@ def geocode():
     if not address:
         error_message = "Missing required parameter: address"
         log_error(error_message)
-        notify_failure("Geocode API Error", error_message)
+        send_email(
+            to_email=ERROR_HANDLING_GROUP_EMAIL,
+            subject="Geocode API Error",
+            body=format_geocode_error_response({"error": error_message})
+        )
         return jsonify({"error": error_message}), 400
 
     try:
         geocode_result = gmaps.geocode(address)
 
-        if geocode_result and 'results' in geocode_result and geocode_result['results']:
-            location = geocode_result['results'][0]['geometry']['location']
-            success_message = "Geocoding successful"
-            log_info(success_message)
-            # Notify success with detailed info
-            notify_success(
-                "Geocode API Success",
-                f"{success_message}<br><br>Address: {address}<br>"
-                f"Latitude: {location['lat']}<br>Longitude: {location['lng']}"
+        log_debug(f"API Response: {geocode_result}")
+
+        if geocode_result and len(geocode_result) > 0:
+            location = geocode_result[0]['geometry']['location']
+            success_message = prepare_geocode_success_message(address, location['lat'], location['lng'])
+            log_info("Geocoding successful")
+            send_email(
+                to_email=RECEIVER_EMAIL,
+                subject="Geocode API Success",
+                body=success_message
             )
             return jsonify({
+                "Given Address:": address,
                 "latitude": location['lat'],
                 "longitude": location['lng']
             }), 200
-
-        error_message = "Geocoding failed for the provided address"
-        log_error(error_message)
-        notify_failure("Geocode API Error", error_message)
-        return jsonify({"error": error_message}), 404
+        else:
+            error_message = "Geocoding result is empty or invalid."
+            formatted_error = format_geocode_error_response({
+                "error": error_message,
+                "api_response": str(geocode_result)
+            })
+            log_error(formatted_error)
+            send_email(
+                to_email=ERROR_HANDLING_GROUP_EMAIL,
+                subject="Geocode API Error",
+                body=formatted_error
+            )
+            return jsonify({"error": error_message}), 404
 
     except Exception as e:
         error_message = f"An error occurred: {str(e)}"
-        log_error(error_message)
-        notify_failure("Geocode API Error", error_message)
+        formatted_error = format_geocode_error_response({"error": error_message})
+        log_error(formatted_error)
+        send_email(
+            to_email=ERROR_HANDLING_GROUP_EMAIL,
+            subject="Geocode API Error",
+            body=formatted_error
+        )
         return jsonify({"error": error_message}), 500
 
     finally:
         log_info("Ending /geocode API call")
 
 
-@app.route('/reverse_geocode', methods=['GET'])
+@app.route('/reverse-geocode', methods=['GET'])
 def reverse_geocode():
     """
     API to get a human-readable address for given latitude and longitude coordinates.
@@ -219,7 +312,7 @@ def reverse_geocode():
         latitude (float): Latitude of the location.
         longitude (float): Longitude of the location.
     Returns:
-        JSON response with the address.
+        JSON response with the address or error details.
     """
     log_info("Starting /reverse_geocode API call")
 
@@ -229,41 +322,62 @@ def reverse_geocode():
     if not latitude or not longitude:
         error_message = "Missing required parameters: latitude and longitude"
         log_error(error_message)
-        notify_failure("Reverse Geocode API Error", error_message)
+        send_email(
+            to_email=ERROR_HANDLING_GROUP_EMAIL,
+            subject="Reverse Geocode API Error",
+            body=format_reverse_geocode_error_response({"error": error_message})
+        )
         return jsonify({"error": error_message}), 400
 
     try:
         reverse_geocode_result = gmaps.reverse_geocode((float(latitude), float(longitude)))
 
-        if reverse_geocode_result and 'results' in reverse_geocode_result and reverse_geocode_result['results']:
-            address = reverse_geocode_result['results'][0]['formatted_address']
-            success_message = "Reverse geocoding successful"
-            log_info(success_message)
+        log_debug(f"API Response: {reverse_geocode_result}")
 
-            notify_success(
-                "Reverse Geocode API Success",
-                f"{success_message}<br><br>Coordinates: Latitude: {latitude}, Longitude: {longitude}<br>"
-                f"Address: {address}"
+        if reverse_geocode_result and len(reverse_geocode_result) > 0:
+            address = reverse_geocode_result[0]['formatted_address']
+            success_message = prepare_reverse_geocode_success_message(latitude, longitude, address)
+
+            log_info("Reverse geocoding successful")
+            send_email(
+                to_email=RECEIVER_EMAIL,
+                subject="Reverse Geocode API Success",
+                body=success_message
             )
-            return jsonify({"address": address}), 200
+            return jsonify({"address": address, "Given latitude": latitude, "Given longitude": longitude}), 200
+        else:
+            error_message = "Reverse geocoding failed for the provided coordinates"
+            formatted_error = format_reverse_geocode_error_response({
+                "error": error_message,
+                "api_response": str(reverse_geocode_result)
+            })
 
-        error_message = "Reverse geocoding failed for the provided coordinates"
-        log_error(error_message)
-        notify_failure("Reverse Geocode API Error", error_message)
-        return jsonify({"error": error_message}), 404
+            log_error(formatted_error)
+            send_email(
+                to_email=ERROR_HANDLING_GROUP_EMAIL,
+                subject="Reverse Geocode API Error",
+                body=formatted_error
+            )
+            return jsonify({"error": error_message}), 404
 
     except Exception as e:
         error_message = f"An error occurred: {str(e)}"
-        log_error(error_message)
-        notify_failure("Reverse Geocode API Error", error_message)
+        formatted_error = format_reverse_geocode_error_response({"error": error_message})
+
+        log_error(formatted_error)
+        send_email(
+            to_email=ERROR_HANDLING_GROUP_EMAIL,
+            subject="Reverse Geocode API Error",
+            body=formatted_error
+        )
         return jsonify({"error": error_message}), 500
 
     finally:
         log_info("Ending /reverse_geocode API call")
 
 
-@app.route('/distance', methods=['GET'])
-def distance():
+@app.route('/get-distance', methods=['GET'])
+def get_distance():
     """
     API to calculate the distance between two points given their latitude and longitude coordinates.
     Query Parameters:
@@ -272,7 +386,7 @@ def distance():
         lat2 (float): Latitude of the second location.
         lng2 (float): Longitude of the second location.
     Returns:
-        JSON response with the distance between the two points.
+        JSON response with the distance between the two points, including the coordinates and formatted message.
     """
     log_info("Starting /distance API call")
 
@@ -295,15 +409,24 @@ def distance():
 
         if distance_result and 'rows' in distance_result and distance_result['rows']:
             distances = distance_result['rows'][0]['elements'][0]['distance']['text']
-            success_message = "Distance calculation successful"
+            success_message = f"Distance calculation successful"
+
             log_info(success_message)
+
+            formatted_message = (f"Coordinates:<br>Start: Latitude: {lat1}, Longitude: {lng1}<br>"
+                                 f"End: Latitude: {lat2}, Longitude: {lng2}<br>Distance: {distances}")
 
             notify_success(
                 "Distance API Success",
-                f"{success_message}<br><br>Coordinates:<br>Start: Latitude: {lat1}, Longitude: {lng1}<br>"
-                f"End: Latitude: {lat2}, Longitude: {lng2}<br>Distance: {distances}"
+                f"{success_message}<br><br>{formatted_message}"
             )
-            return jsonify({"distance": distances}), 200
+
+            return jsonify({
+                "message": success_message,
+                "start_coordinates": {"latitude": lat1, "longitude": lng1},
+                "end_coordinates": {"latitude": lat2, "longitude": lng2},
+                "distance": distances
+            }), 200
 
         error_message = "Failed to calculate distance"
         log_error(error_message)
@@ -413,6 +536,78 @@ def get_facility_stats():
         log_error(f"GET /airport/facilities/stats - Error: {str(e)}")
         notify_failure("Failed to Retrieve Facility Statistics", f"Error details: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+
+
+@app.route('/airport/facilities/batch', methods=['POST'])
+def add_multiple_facilities_batch():
+    try:
+        facilities_data = request.json
+
+        # Validate input format
+        if not isinstance(facilities_data, list):
+            error_msg = "Invalid input format, expected a list."
+            log_error(error_msg)
+            notify_failure("Batch Facility Addition Failed", error_msg)
+            return jsonify({"error": error_msg}), 400
+
+        new_facilities = []
+        for facility in facilities_data:
+            # Extract fields
+            name = facility.get('name')
+            category = facility.get('category')
+            coordinates = facility.get('coordinates')
+            description = facility.get('description')
+
+            # Validate mandatory fields
+            if not name or not category or not coordinates:
+                error_msg = f"Missing required fields for facility: {facility}"
+                log_error(error_msg)
+                notify_failure("Batch Facility Addition Failed", error_msg)
+                return jsonify({"error": error_msg}), 400
+
+            # Create a new AirportFacility instance
+            new_facility = AirportFacility(
+                name=name,
+                category=category,
+                coordinates=coordinates,
+                description=description
+            )
+            session.add(new_facility)
+            new_facilities.append(new_facility)
+
+        # Commit the batch insert
+        session.commit()
+
+        success_msg = "Facilities added successfully."
+        log_info(success_msg)
+
+        # Prepare response data for email and return statement
+        facility_details = [facility.to_dict() for facility in new_facilities]
+        facility_count = len(new_facilities)  # Calculate the total count
+
+        # Send success notification with the facilities and total count
+        notify_success("Batch Facility Addition Success", success_msg, facilities=facility_details,
+                       count=facility_count)
+
+        # Return response with facility details and total count
+        return jsonify({
+            "message": success_msg,
+            "facilities": facility_details,
+            "total_facilities": facility_count
+        }), 201
+
+    except SQLAlchemyError as e:
+        session.rollback()
+        error_msg = f"Database error: {str(e)}"
+        log_error(error_msg)
+        notify_failure("Batch Facility Addition Failed", error_msg)
+        return jsonify({"error": error_msg}), 500
+
+    except Exception as e:
+        error_msg = f"An unexpected error occurred: {str(e)}"
+        log_error(error_msg)
+        notify_failure("Batch Facility Addition Failed", error_msg)
+        return jsonify({"error": error_msg}), 500
 
 
 @app.route('/airport/facilities/batch-update', methods=['PUT'])

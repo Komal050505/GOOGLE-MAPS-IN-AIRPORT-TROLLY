@@ -1,10 +1,12 @@
+# Standard Library Imports
 import smtplib
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from email_setup.email_config import ERROR_HANDLING_GROUP_EMAIL, RECEIVER_EMAIL, SENDER_EMAIL, SMTP_SERVER, SMTP_PORT, \
-    PASSWORD
+# Project-Specific Imports
+from email_setup.email_config import (ERROR_HANDLING_GROUP_EMAIL, RECEIVER_EMAIL, SENDER_EMAIL,
+                                      SMTP_SERVER, SMTP_PORT, PASSWORD)
 
 
 def get_formatted_time():
@@ -154,3 +156,56 @@ def format_steps(steps):
 
     html += "</table>"
     return html
+
+
+def format_facility_details_with_distance_for_email(facilities):
+    """
+    Formats the facility details including distances for email notifications.
+    :param facilities: List of facility dictionaries with distance included
+    :return: HTML string with facility details and distances for email
+    """
+    formatted_details = ""
+    for facility in facilities:
+        formatted_details += f"""
+        <div>
+            <h4>{facility['name']} (ID: {facility['id']})</h4>
+            <p><strong>Category:</strong> {facility['category']}</p>
+            <p><strong>Coordinates:</strong> {facility['coordinates']}</p>
+            <p><strong>Description:</strong> {facility['description']}</p>
+            <p><strong>Distance:</strong> {facility['distance']}</p>
+            <p><strong>Created At:</strong> {facility['created_at']}</p>
+            <hr>
+        </div>
+        """
+    return formatted_details
+
+
+def prepare_geocode_success_message(address, latitude, longitude):
+    """Prepare a success message for geocoding."""
+    return f"""
+        <h2>Geocoding Successful</h2>
+        <p><strong>Address:</strong> {address}</p>
+        <p><strong>Latitude:</strong> {latitude}</p>
+        <p><strong>Longitude:</strong> {longitude}</p>
+    """
+
+
+def format_geocode_error_response(api_response):
+    """Format the error response for geocoding failure."""
+    if isinstance(api_response, dict):
+        api_response = str(api_response)
+    return f"Geocoding failed. API Response: {api_response}"
+
+
+def format_reverse_geocode_error_response(api_response):
+    """Format the error response for reverse geocoding failure."""
+    if isinstance(api_response, dict):
+        api_response = str(api_response)
+    return f"Reverse geocoding failed. API Response: {api_response}"
+
+
+def prepare_reverse_geocode_success_message(latitude, longitude, address):
+    """Format the success message for reverse geocoding."""
+    return (f"Reverse geocoding successful!<br><br>"
+            f"Coordinates: Latitude: {latitude}, Longitude: {longitude}<br>"
+            f"Address: {address}")

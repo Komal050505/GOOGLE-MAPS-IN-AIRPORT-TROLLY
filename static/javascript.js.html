@@ -1,0 +1,78 @@
+let map;
+let directionsService;
+let directionsRenderer;
+const highlighterIcon = {
+    url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+    scaledSize: new google.maps.Size(40, 40),
+    origin: new google.maps.Point(0, 0),
+    anchor: new google.maps.Point(20, 40)
+};
+
+function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 15,
+        center: { lat: 28.556160, lng: 77.100281 } // Default center
+    });
+
+    directionsService = new google.maps.DirectionsService();
+    directionsRenderer = new google.maps.DirectionsRenderer();
+    directionsRenderer.setMap(map);
+}
+
+async function getRoute() {
+    const currentLat = document.getElementById('current_lat').value;
+    const currentLng = document.getElementById('current_lng').value;
+    const destination = document.getElementById('destination').value;
+
+    if (!currentLat || !currentLng || !destination) {
+        alert('Please enter all required fields.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/navigate?current_lat=${encodeURIComponent(currentLat)}&current_lng=${encodeURIComponent(currentLng)}&facility_id=${encodeURIComponent(destination)}`);
+        const routeData = await response.json();
+
+        if (response.ok) {
+            displayRoute(routeData);
+            alert(`Total Distance: ${routeData.total_distance}\nTotal Duration: ${routeData.total_duration}`);
+        } else {
+            alert(`Error: ${routeData.error}`);
+        }
+    } catch (error) {
+        alert('An error occurred while fetching the route.');
+        console.error('Error:', error);
+    }
+}
+
+function displayRoute(routeData) {
+    if (!routeData || !routeData.navigation_steps) {
+        alert('No route data available');
+        return;
+    }
+
+    const waypts = routeData.navigation_steps.map(step => ({
+        location: new google.maps.LatLng(step.start_location.lat, step.start_location.lng),
+        stopover: true
+    }));
+
+    directionsService.route({
+        origin: new google.maps.LatLng(routeData.navigation_steps[0].start_location.lat, routeData.navigation_steps[0].start_location.lng),
+        destination: new google.maps.LatLng(routeData.navigation_steps[routeData.navigation_steps.length - 1].end_location.lat, routeData.navigation_steps[routeData.navigation_steps.length - 1].end_location.lng),
+        waypoints: waypts,
+        travelMode: 'WALKING'
+    }, function (response, status) {
+        if (status === 'OK') {
+            directionsRenderer.setDirections(response);
+            const destinationLocation = new google.maps.LatLng(routeData.facility.coordinates[0], routeData.facility.coordinates[1]);
+            new google.maps.Marker({
+                position: destinationLocation,
+                map: map,
+                icon: highlighterIcon,
+                title: 'Destination: ' + routeData.facility.name
+            });
+        } else {
+            alert('Directions request failed due to ' + status);
+        }
+    });
+}

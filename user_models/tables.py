@@ -1,6 +1,10 @@
+# SQLAlchemy Imports
 from sqlalchemy import Column, String, Integer, DateTime
+
+# Standard Library Imports
 from datetime import datetime
 
+# Project-Specific Imports
 from db_connections.configurations import Base
 
 
