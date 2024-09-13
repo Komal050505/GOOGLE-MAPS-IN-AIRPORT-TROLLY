@@ -4,17 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="711838c7-40ae-4342-8db5-428e94385878" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/app.log" beforeDir="false" afterPath="$PROJECT_DIR$/apps/app.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/apps/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/apps/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/code.html" beforeDir="false" afterPath="$PROJECT_DIR$/code.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db_connections/configurations.py" beforeDir="false" afterPath="$PROJECT_DIR$/db_connections/configurations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/email_setup/email_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/email_setup/email_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/email_setup/email_operations.py" beforeDir="false" afterPath="$PROJECT_DIR$/email_setup/email_operations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logging_package/logging_utility.py" beforeDir="false" afterPath="$PROJECT_DIR$/logging_package/logging_utility.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user_models/tables.py" beforeDir="false" afterPath="$PROJECT_DIR$/user_models/tables.py" afterDir="false" />
-    </list>
+    <list default="true" id="711838c7-40ae-4342-8db5-428e94385878" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -48,6 +38,11 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;inlay.hints&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\lenovo\PycharmProjects\google_maps_in_airport_trolly\static" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
